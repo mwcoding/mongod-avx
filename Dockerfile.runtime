@@ -1,0 +1,32 @@
+FROM ubuntu:noble
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    libcurl4t64 \
+    libssl3t64 \
+    liblzma5 \
+    libsnappy1v5 \
+    libunwind8 \
+    libyaml-cpp0.8 \
+    libldap2 \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY noble-nehalem-mongodb-upload/mongod.zip /tmp/mongod.zip
+
+RUN unzip -p /tmp/mongod.zip mongod > /usr/local/bin/mongod \
+    && chmod 0755 /usr/local/bin/mongod \
+    && rm /tmp/mongod.zip \
+    && ! ldd /usr/local/bin/mongod | grep -q "not found" \
+    && useradd --system --uid 999 --home-dir /data/db mongodb \
+    && mkdir -p /data/db \
+    && chown -R mongodb:mongodb /data/db
+
+VOLUME ["/data/db"]
+EXPOSE 27017
+
+USER mongodb
+ENTRYPOINT ["/usr/local/bin/mongod"]
+CMD ["--bind_ip_all", "--dbpath", "/data/db"]
