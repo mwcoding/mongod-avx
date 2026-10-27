@@ -27,6 +27,10 @@ RUN git submodule update --init --remote --checkout mongo
 
 WORKDIR /src/mongo
 
+RUN git remote -v && \
+    git tag -l 'r8.0.17' && \
+    git branch -a
+
 RUN git checkout r8.0.17
 
 # Patches
