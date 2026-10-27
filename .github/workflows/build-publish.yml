@@ -1,0 +1,54 @@
+name: Build and publish MongoDB 8 without AVX
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build MongoDB binary
+        run: |
+          chmod +x builder.sh
+          ./builder.sh "12" "nehalem" "noble"
+          test -s noble-nehalem-mongodb-upload/mongod.zip
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build runtime image
+        env:
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          IMAGE="ghcr.io/$(echo "$OWNER" | tr '[:upper:]' '[:lower:]')/mongodb8-no-avx"
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+          docker build \
+            -f Dockerfile.runtime \
+            -t "$IMAGE:8.0.17-nehalem" \
+            -t "$IMAGE:latest" \
+            .
+
+      - name: Test MongoDB binary
+        run: |
+          docker run --rm "$IMAGE:8.0.17-nehalem" --version
+
+      - name: Publish image
+        run: |
+          docker push "$IMAGE:8.0.17-nehalem"
+          docker push "$IMAGE:latest"
