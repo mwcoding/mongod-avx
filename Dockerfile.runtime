@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libyaml-cpp0.8 \
     libldap2 \
     unzip \
+    file \
     && rm -rf /var/lib/apt/lists/*
 
 COPY noble-nehalem-mongodb-upload/mongod.zip /tmp/mongod.zip
