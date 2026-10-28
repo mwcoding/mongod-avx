@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libldap2 \
     unzip \
     file \
+    libatomic1 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY noble-nehalem-mongodb-upload/mongod.zip /tmp/mongod.zip
