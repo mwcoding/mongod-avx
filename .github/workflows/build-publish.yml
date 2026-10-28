@@ -1,3 +1,4 @@
+
 name: Build and publish MongoDB 8 without AVX
 
 on:
@@ -19,11 +20,24 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Restore compiled MongoDB binary
+        id: mongo-cache
+        uses: actions/cache@v4
+        with:
+          path: noble-nehalem-mongodb-upload/mongod.zip
+          key: mongo-8.0.17-nehalem-noble-${{ hashFiles('builder.sh', '.bazelrc.local', 'patches/**/*.patch') }}
+
       - name: Build MongoDB binary
+        if: steps.mongo-cache.outputs.cache-hit != 'true'
         run: |
           chmod +x builder.sh
           ./builder.sh "12" "nehalem" "noble"
           test -s noble-nehalem-mongodb-upload/mongod.zip
+
+      - name: Verify MongoDB binary artifact
+        run: |
+          test -s noble-nehalem-mongodb-upload/mongod.zip
+          unzip -t noble-nehalem-mongodb-upload/mongod.zip
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -38,6 +52,7 @@ jobs:
         run: |
           IMAGE="ghcr.io/$(echo "$OWNER" | tr '[:upper:]' '[:lower:]')/mongodb8-no-avx"
           echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+
           docker build \
             -f Dockerfile.runtime \
             -t "$IMAGE:8.0.17-nehalem" \
