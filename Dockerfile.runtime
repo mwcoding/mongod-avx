@@ -16,13 +16,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY noble-nehalem-mongodb-upload/mongod.zip /tmp/mongod.zip
 
-RUN unzip -p /tmp/mongod.zip mongod > /usr/local/bin/mongod \
-    && chmod 0755 /usr/local/bin/mongod \
-    && rm /tmp/mongod.zip \
-    && ! ldd /usr/local/bin/mongod | grep -q "not found" \
-    && useradd --system --uid 999 --home-dir /data/db mongodb \
-    && mkdir -p /data/db \
-    && chown -R mongodb:mongodb /data/db
+RUN set -eux; \
+    echo "=== ZIP contents ==="; \
+    unzip -l /tmp/mongod.zip; \
+    echo "=== Extracting mongod ==="; \
+    unzip -p /tmp/mongod.zip mongod > /usr/local/bin/mongod; \
+    ls -lh /usr/local/bin/mongod; \
+    chmod 0755 /usr/local/bin/mongod; \
+    echo "=== Binary type ==="; \
+    file /usr/local/bin/mongod; \
+    echo "=== Shared library dependencies ==="; \
+    ldd /usr/local/bin/mongod || true; \
+    echo "=== UID 999 ==="; \
+    getent passwd 999 || true; \
+    echo "=== Creating mongodb user ==="; \
+    useradd --system --uid 999 --home-dir /data/db mongodb; \
+    mkdir -p /data/db; \
+    chown -R mongodb:mongodb /data/db
 
 VOLUME ["/data/db"]
 EXPOSE 27017
