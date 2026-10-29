@@ -25,7 +25,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: noble-nehalem-mongodb-upload/mongod.zip
-          key: mongo-8.0.17-nehalem-noble-${{ hashFiles('builder.sh', '.bazelrc.local', 'patches/**/*.patch') }}
+          key: mongo-8.0.34-nehalem-noble-${{ hashFiles('builder.sh', '.bazelrc.local', 'patches/**/*.patch') }}
 
       - name: Build MongoDB binary
         if: steps.mongo-cache.outputs.cache-hit != 'true'
@@ -55,15 +55,15 @@ jobs:
 
           docker build \
             -f Dockerfile.runtime \
-            -t "$IMAGE:8.0.17-nehalem" \
+            -t "$IMAGE:8.0.34-nehalem" \
             -t "$IMAGE:latest" \
             .
 
       - name: Test MongoDB binary
         run: |
-          docker run --rm "$IMAGE:8.0.17-nehalem" --version
+          docker run --rm "$IMAGE:8.0.34-nehalem" --version
 
       - name: Publish image
         run: |
-          docker push "$IMAGE:8.0.17-nehalem"
+          docker push "$IMAGE:8.0.34-nehalem"
           docker push "$IMAGE:latest"
