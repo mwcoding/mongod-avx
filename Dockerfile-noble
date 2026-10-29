@@ -28,8 +28,8 @@ RUN git submodule update --init --remote --checkout mongo
 WORKDIR /src/mongo
 
 RUN git fetch --force origin \
-      refs/tags/r8.0.17:refs/tags/r8.0.17 \
-    && git checkout r8.0.17
+      refs/tags/r8.0.34:refs/tags/r8.0.34 \
+    && git checkout r8.0.34
 
 # Patches
 COPY patches /src/mongo/patches
